@@ -3,6 +3,7 @@
   "extends": ["config:recommended"],
   "includePaths": [".github/**", "registry/**"],
   "prHourlyLimit": 0,
+  "dependencyDashboardApproval": false,
   "automerge": false,
   "customManagers": [
     {
