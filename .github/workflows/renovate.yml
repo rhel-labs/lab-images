@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: renovatebot/github-action@v46
+      - uses: renovatebot/github-action@v46.2.0
         with:
           configurationFile: renovate.json
           token: ${{ secrets.GITHUB_TOKEN }}
