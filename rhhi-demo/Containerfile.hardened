@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/hi/python:3.12
+FROM registry.access.redhat.com/hi/python:3.13
 USER root
 RUN ["pip", "install", "flask"]
 USER 65532
