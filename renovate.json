@@ -1,7 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
-  "enabledManagers": ["custom.regex", "github-actions"],
+  "dockerfile": {
+    "managerFilePatterns": ["(^|/)registry/Containerfile$"]
+  },
   "automerge": false,
   "customManagers": [
     {
