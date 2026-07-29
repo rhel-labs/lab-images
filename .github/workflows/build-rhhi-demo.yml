@@ -17,12 +17,14 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/install-container-tools
 
       - name: Build hardened variant
         run: podman build -t ghcr.io/rhel-labs/rhhi-demo:hardened -f rhhi-demo/Containerfile.hardened rhhi-demo/

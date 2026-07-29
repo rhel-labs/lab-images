@@ -1,0 +1,21 @@
+name: Install container tools
+description: Install updated podman and crun from Ubuntu plucky
+
+runs:
+  using: composite
+  steps:
+    - name: Install updated container tools
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ "$(dpkg --print-architecture)" = "amd64" ]; then
+          mirror="http://azure.archive.ubuntu.com/ubuntu"
+        else
+          mirror="http://ports.ubuntu.com/ubuntu-ports"
+        fi
+        echo "deb ${mirror} plucky universe main" \
+          | sudo tee /etc/apt/sources.list.d/plucky.list
+        printf 'Package: *\nPin: release n=plucky\nPin-Priority: 100\n' \
+          | sudo tee /etc/apt/preferences.d/plucky.pref
+        sudo apt-get update -q
+        sudo apt-get install -y --no-install-recommends crun/plucky podman/plucky
