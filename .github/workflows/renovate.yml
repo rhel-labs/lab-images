@@ -8,6 +8,10 @@ on:
 jobs:
   renovate:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+      workflows: write
     steps:
       - uses: actions/checkout@v4
 
@@ -17,4 +21,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           RENOVATE_REPOSITORIES: ${{ github.repository }}
-          LOG_LEVEL: debug

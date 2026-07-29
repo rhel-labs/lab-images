@@ -5,6 +5,13 @@
   "prHourlyLimit": 0,
   "dependencyDashboardApproval": false,
   "automerge": false,
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "matchPackagePatterns": ["^registry\\.access\\.redhat\\.com/", "^registry\\.redhat\\.io/"],
+      "versioning": "redhat"
+    }
+  ],
   "customManagers": [
     {
       "customType": "regex",
