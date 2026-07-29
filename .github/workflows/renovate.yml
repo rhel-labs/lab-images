@@ -15,5 +15,8 @@ jobs:
         with:
           configurationFile: renovate.json
           token: ${{ secrets.GITHUB_TOKEN }}
+          secrets: |
+            RHT_REG_SVCUSER=${{ secrets.RHT_REG_SVCUSER }}
+            RHT_REG_SVCPASS=${{ secrets.RHT_REG_SVCPASS }}
         env:
           RENOVATE_REPOSITORIES: ${{ github.repository }}
