@@ -9,6 +9,7 @@ on:
     branches: [main]
     paths:
       - rhhi-demo/**
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
