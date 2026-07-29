@@ -1,11 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base"],
+  "extends": ["config:recommended"],
   "automerge": false,
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["^registry/Containerfile$"],
+      "managerFilePatterns": ["/^registry/Containerfile$/"],
       "matchStrings": ["ARG DISTRIBUTION_VERSION=(?<currentValue>v[\\d.]+)"],
       "depNameTemplate": "distribution/distribution",
       "datasourceTemplate": "github-releases"
