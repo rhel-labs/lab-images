@@ -1,4 +1,4 @@
-FROM registry.redhat.io/rhel9/rhel-bootc:9.8
+FROM registry.redhat.io/rhel9/rhel-bootc:9.8-1785289188
 
 ADD etc /etc
 
