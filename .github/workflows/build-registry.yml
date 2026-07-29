@@ -5,6 +5,14 @@ on:
     branches: [main]
     paths:
       - registry/**
+  pull_request:
+    branches: [main]
+    paths:
+      - registry/**
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -15,17 +23,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Build image
+        run: podman build -t ghcr.io/rhel-labs/registry:latest registry/
+
+      - name: Smoke test
+        run: |
+          podman run -d --name registry-test -p 5000:5000 ghcr.io/rhel-labs/registry:latest
+          curl -sf --retry 5 --retry-delay 2 --retry-connrefused http://localhost:5000/v2/ \
+            | grep -q '{}'
+          podman stop registry-test
+
       - name: Log in to ghcr.io
-        uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        uses: redhat-actions/podman-login@v1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: registry/
-          file: registry/Containerfile
-          push: true
-          tags: ghcr.io/rhel-labs/registry:latest
+      - name: Push image
+        if: github.event_name != 'pull_request'
+        run: podman push ghcr.io/rhel-labs/registry:latest

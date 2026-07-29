@@ -5,6 +5,14 @@ on:
     branches: [main]
     paths:
       - rhhi-demo/**
+  pull_request:
+    branches: [main]
+    paths:
+      - rhhi-demo/**
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -15,25 +23,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Build hardened variant
+        run: podman build -t ghcr.io/rhel-labs/rhhi-demo:hardened -f rhhi-demo/Containerfile.hardened rhhi-demo/
+
+      - name: Build ubi variant
+        run: podman build -t ghcr.io/rhel-labs/rhhi-demo:ubi -f rhhi-demo/Containerfile.ubi rhhi-demo/
+
+      - name: Smoke test
+        run: |
+          podman run -d --name rhhi-hardened -p 8080:8080 ghcr.io/rhel-labs/rhhi-demo:hardened
+          podman run -d --name rhhi-ubi -p 8081:8080 ghcr.io/rhel-labs/rhhi-demo:ubi
+          curl -sf --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8080/ \
+            | grep -q 'rhhi-demo'
+          curl -sf --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8081/ \
+            | grep -q 'rhhi-demo'
+          podman stop rhhi-hardened rhhi-ubi
+
       - name: Log in to ghcr.io
-        uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        uses: redhat-actions/podman-login@v1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push hardened variant
-        uses: docker/build-push-action@v6
-        with:
-          context: rhhi-demo/
-          file: rhhi-demo/Containerfile.hardened
-          push: true
-          tags: ghcr.io/rhel-labs/rhhi-demo:hardened
-
-      - name: Build and push ubi variant
-        uses: docker/build-push-action@v6
-        with:
-          context: rhhi-demo/
-          file: rhhi-demo/Containerfile.ubi
-          push: true
-          tags: ghcr.io/rhel-labs/rhhi-demo:ubi
+      - name: Push images
+        if: github.event_name != 'pull_request'
+        run: |
+          podman push ghcr.io/rhel-labs/rhhi-demo:hardened
+          podman push ghcr.io/rhel-labs/rhhi-demo:ubi
