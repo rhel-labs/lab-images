@@ -1,14 +1,12 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
-  "dockerfile": {
-    "managerFilePatterns": ["(^|/)registry/Containerfile$"]
-  },
+  "includePaths": [".github/**", "registry/**"],
   "automerge": false,
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": ["(^|/)registry/Containerfile$"],
+      "managerFilePatterns": ["/(^|/)registry/Containerfile$/"],
       "matchStrings": ["ARG DISTRIBUTION_VERSION=(?<currentValue>v[\\d.]+)"],
       "depNameTemplate": "distribution/distribution",
       "datasourceTemplate": "github-releases"
