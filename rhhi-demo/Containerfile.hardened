@@ -1,0 +1,8 @@
+FROM registry.access.redhat.com/hi/python:3.12
+USER root
+RUN ["pip", "install", "flask"]
+USER 65532
+COPY app.py /app/app.py
+WORKDIR /app
+EXPOSE 8080
+CMD ["python3", "app.py"]

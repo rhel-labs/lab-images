@@ -1,0 +1,58 @@
+name: Watch registry upstream
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # weekly, Monday 09:00 UTC
+  workflow_dispatch:
+
+jobs:
+  check-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get current version
+        id: current
+        run: |
+          VERSION=$(grep 'ARG DISTRIBUTION_VERSION=' registry/Containerfile | cut -d= -f2)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Get latest upstream version
+        id: latest
+        run: |
+          LATEST=$(gh api repos/distribution/distribution/releases/latest --jq '.tag_name')
+          echo "version=$LATEST" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Open PR if newer
+        if: steps.current.outputs.version != steps.latest.outputs.version
+        run: |
+          CURRENT="${{ steps.current.outputs.version }}"
+          LATEST="${{ steps.latest.outputs.version }}"
+          BRANCH="update/registry-${LATEST}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+
+          sed -i "s/ARG DISTRIBUTION_VERSION=.*/ARG DISTRIBUTION_VERSION=${LATEST}/" registry/Containerfile
+
+          git add registry/Containerfile
+          git commit -m "chore: bump registry to ${LATEST}"
+          git push origin "$BRANCH"
+
+          gh pr create \
+            --title "chore: bump registry to ${LATEST}" \
+            --body "Automated update: distribution/distribution ${CURRENT} → ${LATEST}.
+
+See upstream release notes: https://github.com/distribution/distribution/releases/tag/${LATEST}
+
+Merge this PR to trigger a new image build." \
+            --base main \
+            --head "$BRANCH"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

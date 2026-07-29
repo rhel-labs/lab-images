@@ -1,0 +1,25 @@
+ARG DISTRIBUTION_VERSION=v3.1.1
+
+FROM registry.access.redhat.com/hi/core-runtime:2.43-builder AS build
+
+ARG DISTRIBUTION_VERSION
+
+USER root
+RUN dnf install -y tar gzip && dnf clean all
+
+# v3 filenames drop the "v" prefix
+RUN BARE_VERSION="${DISTRIBUTION_VERSION#v}" && \
+    curl -fsSL "https://github.com/distribution/distribution/releases/download/${DISTRIBUTION_VERSION}/registry_${BARE_VERSION}_linux_amd64.tar.gz" \
+    | tar xz -C /usr/local/bin registry
+
+FROM registry.access.redhat.com/hi/core-runtime:2.43
+
+COPY --from=build /usr/local/bin/registry /usr/local/bin/registry
+COPY config/config.yml /etc/docker/registry/config.yml
+
+LABEL org.opencontainers.image.source=https://github.com/rhel-labs/lab-images
+
+EXPOSE 5000
+
+ENTRYPOINT ["/usr/local/bin/registry"]
+CMD ["serve", "/etc/docker/registry/config.yml"]

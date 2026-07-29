@@ -1,0 +1,38 @@
+name: Build im-day2-tgt image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - im-day2-tgt/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to registry.redhat.io
+        uses: docker/login-action@v3
+        with:
+          registry: registry.redhat.io
+          username: ${{ secrets.RHT_REG_SVCUSER }}
+          password: ${{ secrets.RHT_REG_SVCPASS }}
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: im-day2-tgt/
+          file: im-day2-tgt/Containerfile
+          push: true
+          tags: ghcr.io/rhel-labs/im-day2-tgt:latest

@@ -1,0 +1,7 @@
+FROM registry.redhat.io/rhel9/rhel-bootc:9.8
+
+ADD etc /etc
+
+RUN dnf install -y httpd vim
+
+RUN systemctl enable httpd
