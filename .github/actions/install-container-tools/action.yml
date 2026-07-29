@@ -1,5 +1,5 @@
 name: Install container tools
-description: Install updated podman and crun from Ubuntu plucky
+description: Install updated crun from Ubuntu plucky for hi/ image compatibility
 
 runs:
   using: composite
@@ -18,4 +18,4 @@ runs:
         printf 'Package: *\nPin: release n=plucky\nPin-Priority: 100\n' \
           | sudo tee /etc/apt/preferences.d/plucky.pref
         sudo apt-get update -q
-        sudo apt-get install -y --no-install-recommends crun/plucky podman/plucky
+        sudo apt-get install -y --no-install-recommends crun/plucky

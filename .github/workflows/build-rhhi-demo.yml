@@ -34,13 +34,21 @@ jobs:
 
       - name: Smoke test
         run: |
-          podman run -d --name rhhi-hardened -p 8080:8080 ghcr.io/rhel-labs/rhhi-demo:hardened
-          podman run -d --name rhhi-ubi -p 8081:8080 ghcr.io/rhel-labs/rhhi-demo:ubi
+          set -euo pipefail
+          podman run -d --name rhhi-hardened --pull=never -p 8080:8080 ghcr.io/rhel-labs/rhhi-demo:hardened
+          podman run -d --name rhhi-ubi --pull=never -p 8081:8080 ghcr.io/rhel-labs/rhhi-demo:ubi
+          sleep 2
           curl -sf --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8080/ \
             | grep -q 'rhhi-demo'
           curl -sf --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8081/ \
             | grep -q 'rhhi-demo'
           podman stop rhhi-hardened rhhi-ubi
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: |
+          podman logs rhhi-hardened 2>&1 || true
+          podman logs rhhi-ubi 2>&1 || true
 
       - name: Log in to ghcr.io
         if: github.event_name != 'pull_request'

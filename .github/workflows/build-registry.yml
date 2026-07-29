@@ -31,10 +31,16 @@ jobs:
 
       - name: Smoke test
         run: |
-          podman run -d --name registry-test -p 5000:5000 ghcr.io/rhel-labs/registry:latest
+          set -euo pipefail
+          podman run -d --name registry-test --pull=never -p 5000:5000 ghcr.io/rhel-labs/registry:latest
+          sleep 2
           curl -sf --retry 5 --retry-delay 2 --retry-connrefused http://localhost:5000/v2/ \
             | grep -q '{}'
           podman stop registry-test
+
+      - name: Dump registry logs on failure
+        if: failure()
+        run: podman logs registry-test 2>&1 || true
 
       - name: Log in to ghcr.io
         if: github.event_name != 'pull_request'
