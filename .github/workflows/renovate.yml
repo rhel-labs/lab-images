@@ -17,4 +17,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           RENOVATE_REPOSITORIES: ${{ github.repository }}
-          RENOVATE_HOST_RULES: '[{"matchHost":"registry.redhat.io","username":"${{ secrets.RHT_REG_SVCUSER }}","password":"${{ secrets.RHT_REG_SVCPASS }}"}]'
