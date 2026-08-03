@@ -12,7 +12,7 @@ RUN BARE_VERSION="${DISTRIBUTION_VERSION#v}" && \
     curl -fsSL "https://github.com/distribution/distribution/releases/download/${DISTRIBUTION_VERSION}/registry_${BARE_VERSION}_linux_amd64.tar.gz" \
     | tar xz -C /usr/local/bin registry
 
-FROM registry.access.redhat.com/hi/core-runtime:2.43
+FROM registry.access.redhat.com/hi/core-runtime:2.43-1785504871
 
 COPY --from=build /usr/local/bin/registry /usr/local/bin/registry
 COPY config/config.yml /etc/docker/registry/config.yml
