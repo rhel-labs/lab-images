@@ -33,9 +33,9 @@ jobs:
       - name: Smoke test
         run: |
           set -euo pipefail
-          podman run -d --name hostinfo-app --pull=never -p 8080:8080 ghcr.io/rhel-labs/hostinfo-app:latest
+          podman run -d --name hostinfo-app --pull=never -p 8000:8000 ghcr.io/rhel-labs/hostinfo-app:latest
           sleep 2
-          curl -sf --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8080/data?view \
+          curl -sf --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8000/data?view \
             | grep -q 'distro_id'
           podman stop hostinfo-app
 
