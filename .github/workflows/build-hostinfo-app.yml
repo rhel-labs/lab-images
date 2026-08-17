@@ -35,7 +35,7 @@ jobs:
           set -euo pipefail
           podman run -d --name hostinfo-app --pull=never -p 8000:8000 ghcr.io/rhel-labs/hostinfo-app:latest
           sleep 2
-          curl -sf --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8000/data?view \
+          curl -sf --ipv4 --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8000/data?view=container \
             | grep -q 'distro_id'
           podman stop hostinfo-app
 
