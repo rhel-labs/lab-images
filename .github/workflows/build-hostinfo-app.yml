@@ -1,14 +1,15 @@
-name: Build registry image
+name: Build python hostinfo app image
+
 
 on:
   push:
     branches: [main]
     paths:
-      - registry/**
+      - hostinfo-app/**
   pull_request:
     branches: [main]
     paths:
-      - registry/**
+      - hostinfo-app/**
   workflow_dispatch:
 
 concurrency:
@@ -26,21 +27,22 @@ jobs:
 
       - uses: ./.github/actions/install-container-tools
 
-      - name: Build image
-        run: podman build -t ghcr.io/rhel-labs/registry:latest registry/
+      - name: Build application image
+        run: podman build -t ghcr.io/rhel-labs/hostinfo-app:latest -f hostinfo-app/Containerfile hostinfo-app/
 
       - name: Smoke test
         run: |
           set -euo pipefail
-          podman run -d --name registry-test --pull=never -p 5000:5000 ghcr.io/rhel-labs/registry:latest
+          podman run -d --name hostinfo-app --pull=never -p 8000:8000 ghcr.io/rhel-labs/hostinfo-app:latest
           sleep 2
-          curl -sf --ipv4 --retry 5 --retry-delay 2 --retry-connrefused http://localhost:5000/v2/ \
-            | grep -q '{}'
-          podman stop registry-test
+          curl -sf --ipv4 --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8000/data?view=container \
+            | grep -q 'distro_id'
+          podman stop hostinfo-app
 
-      - name: Dump registry logs on failure
+      - name: Dump container logs on failure
         if: failure()
-        run: podman logs registry-test 2>&1 || true
+        run: |
+          podman logs hostinfo-app 2>&1 || true
 
       - name: Log in to ghcr.io
         if: github.event_name != 'pull_request'
@@ -50,6 +52,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push image
+      - name: Push images
         if: github.event_name != 'pull_request'
-        run: podman push ghcr.io/rhel-labs/registry:latest
+        run: |
+          podman push ghcr.io/rhel-labs/hostinfo-app:latest
