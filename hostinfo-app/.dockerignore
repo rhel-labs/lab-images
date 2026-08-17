@@ -1,0 +1,45 @@
+# Git files
+.git
+.gitignore
+
+# Docker files
+.dockerignore
+Containerfile 
+# Dockerfile (if you choose that name)
+
+# Python virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.hypothesis/
+.cache
+
+# IDE/Editor specific files
+.idea/
+*.iml
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+
+# Build artifacts (if any were generated locally)
+build/
+dist/
+*.egg-info/
+
+# Local instance folder (if you were using one for Flask)
+instance/
+
+# README - often not needed in the final image unless the app uses it
+README.md
+
+# Any local OS-specific files
+Thumbs.db
+._*
