@@ -42,7 +42,7 @@ jobs:
             -e SMDEV_CONTAINER_OFF=1 \
             -e RHT_ORGID -e RHT_ACT_KEY \
             -e SOURCE_REGISTRY_USER -e SOURCE_REGISTRY_PASSWORD \
-            registry.access.redhat.com/ubi9/ubi bash -c '
+            registry.access.redhat.com/ubi10/ubi bash -c '
               set -euo pipefail
               dnf -y install buildah scap-security-guide openscap-utils
               subscription-manager register --org="${RHT_ORGID}" --activationkey="${RHT_ACT_KEY}"
