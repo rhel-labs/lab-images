@@ -46,7 +46,6 @@ jobs:
               set -euo pipefail
               dnf -y install buildah
               subscription-manager register --org="${RHT_ORGID}" --activationkey="${RHT_ACT_KEY}"
-              dnf -y install buildah scap-security-guide openscap-utils
               trap "subscription-manager unregister" EXIT
               buildah login -u "${SOURCE_REGISTRY_USER}" -p "${SOURCE_REGISTRY_PASSWORD}" registry.redhat.io
               buildah bud -f /build/im-workshop-secured/Containerfile -t ghcr.io/rhel-labs/im-workshop-securedlatest /build/im-workshop-secured

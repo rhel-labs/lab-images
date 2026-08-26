@@ -24,4 +24,4 @@ LABEL profile="CIS Server Level 1 base"
 ENV profileID=cis_server_l1_customized
 
 COPY $profileID.xml /build/im-workshop-secured/$profileID.xml
-RUN oscap-im --profile $profileID --tailoring-file /tmp/$profileID.xml /usr/share/xml/scap/ssg/content/ssg-rhel10-ds.xml
+RUN oscap-im --profile $profileID --tailoring-file /build/im-workshop-secured/$profileID.xml /usr/share/xml/scap/ssg/content/ssg-rhel10-ds.xml
