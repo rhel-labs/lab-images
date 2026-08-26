@@ -1,0 +1,64 @@
+name: Build im-workshop-secured image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - im-workshop-secured/**
+  pull_request:
+    branches: [main]
+    paths:
+      - im-workshop-secured/**
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RHT_ORGID: ${{ secrets.RHT_ORGID }}
+  RHT_ACT_KEY: ${{ secrets.RHT_ACT_KEY }}
+  SOURCE_REGISTRY_USER: ${{ secrets.RHT_REG_SVCUSER }}
+  SOURCE_REGISTRY_PASSWORD: ${{ secrets.RHT_REG_SVCPASS }}
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04  # pinned — plucky mirror URL is version-specific
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/install-container-tools
+
+      - name: Build image
+        run: |
+          set -euo pipefail
+          podman volume create build-storage
+          podman run --rm --privileged \
+            -v build-storage:/var/lib/containers \
+            -v ${{ github.workspace }}:/build \
+            -e SMDEV_CONTAINER_OFF=1 \
+            -e RHT_ORGID -e RHT_ACT_KEY \
+            -e SOURCE_REGISTRY_USER -e SOURCE_REGISTRY_PASSWORD \
+            registry.access.redhat.com/ubi9/ubi bash -c '
+              set -euo pipefail
+              dnf -y install buildah scap-security-guide openscap-utils
+              subscription-manager register --org="${RHT_ORGID}" --activationkey="${RHT_ACT_KEY}"
+              trap "subscription-manager unregister" EXIT
+              buildah login -u "${SOURCE_REGISTRY_USER}" -p "${SOURCE_REGISTRY_PASSWORD}" registry.redhat.io
+              buildah bud -f /build/im-workshop-secured/Containerfile -t ghcr.io/rhel-labs/im-workshop-securedlatest /build/im-workshop-secured
+            '
+
+      - name: Push image
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          STORAGE_ROOT=$(podman volume inspect build-storage --format '{{.Mountpoint}}')
+          podman login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+          podman --root "${STORAGE_ROOT}/storage" push ghcr.io/rhel-labs/im-workshop-ops:latest
+
+      - name: Cleanup build storage
+        if: always()
+        run: podman volume rm -f build-storage
