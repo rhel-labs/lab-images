@@ -44,8 +44,10 @@ jobs:
             -e SOURCE_REGISTRY_USER -e SOURCE_REGISTRY_PASSWORD \
             registry.access.redhat.com/ubi10/ubi bash -c '
               set -euo pipefail
-              dnf -y install buildah scap-security-guide openscap-utils
+              dnf -y install buildah
+              subscription-manager repos --enable=rhel-10-for-x86_64-baseos-rpms
               subscription-manager register --org="${RHT_ORGID}" --activationkey="${RHT_ACT_KEY}"
+              dnf -y install buildah scap-security-guide openscap-utils
               trap "subscription-manager unregister" EXIT
               buildah login -u "${SOURCE_REGISTRY_USER}" -p "${SOURCE_REGISTRY_PASSWORD}" registry.redhat.io
               buildah bud -f /build/im-workshop-secured/Containerfile -t ghcr.io/rhel-labs/im-workshop-securedlatest /build/im-workshop-secured
