@@ -57,7 +57,7 @@ jobs:
           set -euo pipefail
           STORAGE_ROOT=$(podman volume inspect build-storage --format '{{.Mountpoint}}')
           podman login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-          podman --root "${STORAGE_ROOT}/storage" push ghcr.io/rhel-labs/im-workshop-ops:latest
+          podman --root "${STORAGE_ROOT}/storage" push ghcr.io/rhel-labs/im-workshop-secured:latest
 
       - name: Cleanup build storage
         if: always()
