@@ -20,7 +20,7 @@ RUN systemctl mask bootc-fetch-apply-updates.timer
 RUN dnf -y install audit fapolicyd openscap-utils scap-security-guide setroubleshoot-server
 
 RUN systemctl enable fapolicyd
-LABEL profile="CIS Server Level 1 base image"
+LABEL profile="CIS Server Level 1 base"
 ENV profileID=cis_server_l1_customized
 
 COPY $profileID.xml /build/im-workshop-secured/$profileID.xml
