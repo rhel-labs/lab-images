@@ -48,7 +48,7 @@ jobs:
               subscription-manager register --org="${RHT_ORGID}" --activationkey="${RHT_ACT_KEY}"
               trap "subscription-manager unregister" EXIT
               buildah login -u "${SOURCE_REGISTRY_USER}" -p "${SOURCE_REGISTRY_PASSWORD}" registry.redhat.io
-              buildah bud -f /build/im-workshop-secured/Containerfile -t ghcr.io/rhel-labs/im-workshop-securedlatest /build/im-workshop-secured
+              buildah bud -f /build/im-workshop-secured/Containerfile -t ghcr.io/rhel-labs/im-workshop-secured:latest /build/im-workshop-secured
             '
 
       - name: Push image
