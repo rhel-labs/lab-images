@@ -52,7 +52,7 @@ jobs:
             '
 
       - name: Push image
-        if: github.event_name != 'pull_request'
+        if: success() && github.event_name != 'pull_request'
         run: |
           set -euo pipefail
           STORAGE_ROOT=$(podman volume inspect build-storage --format '{{.Mountpoint}}')
