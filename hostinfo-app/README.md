@@ -20,6 +20,14 @@ Can show container or host details if appropriate mounts are added at runtime.
     ```
 2.  **Access**: Open `http://localhost:8000` in your browser.
 
+    *(Optional) To change which packages the app reports, mount a custom config file:*
+    ```bash
+    podman run -d -p 8000:8000 --name my-host-details-instance \
+      -v ./example-config.json:/app/config.json:ro,z \
+      host-details-app
+    ```
+    Copy `example-config.json` and edit the package lists to suit. The `:z` flag is required on SELinux systems.
+
 ---
 
 ## App info

@@ -1,0 +1,16 @@
+{
+  "python_packages": [
+    "Flask",
+    "Werkzeug",
+    "Jinja2",
+    "gunicorn",
+    "pip"
+  ],
+  "system_packages": [
+    "bash",
+    "curl",
+    "glibc",
+    "openssl-libs",
+    "python3.11"
+  ]
+}
