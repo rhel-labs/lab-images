@@ -30,8 +30,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./.github/actions/install-container-tools
-
       - name: Fetch app source from python-hostinfo
         run: |
           git clone --depth=1 https://github.com/rhel-labs/python-hostinfo.git /tmp/python-hostinfo
