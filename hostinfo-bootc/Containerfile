@@ -22,11 +22,13 @@ RUN python3 -m venv /app/venv && \
 COPY info-app.service /etc/systemd/system/
 COPY info-app.conf /etc/nginx/conf.d/
 COPY nginx_connect_flask_sock.te /app/
+COPY nginx_connect_flask_sock.fc /app/
 
 WORKDIR /app
 RUN checkmodule -M -m nginx_connect_flask_sock.te -o nginx_connect_flask_sock.mo && \
-    semodule_package -o nginx_connect_flask_sock.pp -m nginx_connect_flask_sock.mo && \
+    semodule_package -o nginx_connect_flask_sock.pp -m nginx_connect_flask_sock.mo -f nginx_connect_flask_sock.fc && \
     semodule -i nginx_connect_flask_sock.pp && \
+    restorecon -R /app/venv/bin/ && \
     semanage fcontext -a -t httpd_var_run_t /run/flask-app
 
 RUN systemctl enable nginx.service && \
