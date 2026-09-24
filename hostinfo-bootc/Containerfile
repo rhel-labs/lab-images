@@ -21,6 +21,7 @@ RUN python3 -m venv /app/venv && \
 
 COPY info-app.service /etc/systemd/system/
 COPY info-app.conf /etc/nginx/conf.d/
+COPY nginx_connect_flask_sock.te /app/
 
 WORKDIR /app
 RUN checkmodule -M -m nginx_connect_flask_sock.te -o nginx_connect_flask_sock.mo && \
