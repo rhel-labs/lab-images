@@ -1,0 +1,13 @@
+[Unit]
+Description=Host information services
+After=network.target
+
+[Service]
+User=nginx
+Group=nginx
+RuntimeDirectory=flask-app
+WorkingDirectory=/app
+ExecStart=/app/venv/bin/gunicorn --workers 3 --bind unix:/run/flask-app/flask-app.sock -m 007 app:app
+
+[Install]
+WantedBy=multi-user.target
