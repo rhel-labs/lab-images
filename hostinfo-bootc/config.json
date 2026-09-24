@@ -1,0 +1,15 @@
+{
+  "python_packages": [
+    "Flask",
+    "gunicorn",
+    "distro"
+  ],
+  "system_packages": [
+    "bash",
+    "openssl",
+    "curl",
+    "nginx",
+    "python3",
+    "selinux-policy"
+  ]
+}

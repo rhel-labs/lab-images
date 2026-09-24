@@ -1,0 +1,32 @@
+FROM registry.redhat.io/rhel10/rhel-bootc:10.1
+
+RUN dnf install -y \
+    python3 \
+    python3-pip \
+    nginx \
+    checkpolicy \
+    policycoreutils-python-utils && \
+    dnf clean all && rm -rf /var/cache/dnf
+
+# App source provided by CI (cloned from python-hostinfo main)
+COPY app/ /app/
+
+# Ship bootc-specific config to /etc/hostinfo — mutable post-deploy,
+# persists across bootc upgrade. App falls back to /app/config.json if absent.
+RUN mkdir -p /etc/hostinfo
+COPY config.json /etc/hostinfo/config.json
+
+RUN python3 -m venv /app/venv && \
+    /app/venv/bin/pip install --no-cache-dir -r /app/requirements.txt
+
+COPY info-app.service /etc/systemd/system/
+COPY info-app.conf /etc/nginx/conf.d/
+
+WORKDIR /app
+RUN checkmodule -M -m nginx_connect_flask_sock.te -o nginx_connect_flask_sock.mo && \
+    semodule_package -o nginx_connect_flask_sock.pp -m nginx_connect_flask_sock.mo && \
+    semodule -i nginx_connect_flask_sock.pp && \
+    semanage fcontext -a -t httpd_var_run_t /run/flask-app
+
+RUN systemctl enable nginx.service && \
+    systemctl enable info-app.service
