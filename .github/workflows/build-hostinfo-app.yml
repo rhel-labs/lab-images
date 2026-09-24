@@ -27,6 +27,11 @@ jobs:
 
       - uses: ./.github/actions/install-container-tools
 
+      - name: Fetch app source from python-hostinfo
+        run: |
+          git clone --depth=1 https://github.com/rhel-labs/python-hostinfo.git /tmp/python-hostinfo
+          cp -r /tmp/python-hostinfo/app hostinfo-app/app
+
       - name: Build application image
         run: podman build -t ghcr.io/rhel-labs/hostinfo-app:latest -f hostinfo-app/Containerfile hostinfo-app/
 
@@ -52,7 +57,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push images
+      - name: Push image
         if: github.event_name != 'pull_request'
         run: |
-          podman push ghcr.io/rhel-labs/hostinfo-app:latest
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            podman push ghcr.io/rhel-labs/hostinfo-app:latest
+          else
+            podman tag ghcr.io/rhel-labs/hostinfo-app:latest ghcr.io/rhel-labs/hostinfo-app:v2
+            podman push ghcr.io/rhel-labs/hostinfo-app:v2
+          fi
