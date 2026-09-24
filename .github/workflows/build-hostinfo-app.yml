@@ -63,6 +63,7 @@ jobs:
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             podman push ghcr.io/rhel-labs/hostinfo-app:latest
           else
-            podman tag ghcr.io/rhel-labs/hostinfo-app:latest ghcr.io/rhel-labs/hostinfo-app:v2
-            podman push ghcr.io/rhel-labs/hostinfo-app:v2
+            TAG=$(echo "${{ github.ref_name }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
+            podman tag ghcr.io/rhel-labs/hostinfo-app:latest ghcr.io/rhel-labs/hostinfo-app:${TAG}
+            podman push ghcr.io/rhel-labs/hostinfo-app:${TAG}
           fi
