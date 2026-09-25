@@ -1,7 +1,33 @@
+# Stage 1: Base Image from Red Hat UBI
 FROM registry.access.redhat.com/ubi10/ubi
-RUN dnf install -y python3 python3-pip && dnf clean all
-RUN pip3 install flask
-COPY app.py /app/app.py
+
+# Install pip to manage application dependencies # <1>
+RUN dnf -y install python3-pip && dnf clean all
+
+# Install application dependencies
+USER root
+RUN python3 -m pip install flask
+
+# Create a non-root user and group for the application # <2>
+# Using a different UID/GID to avoid conflict with existing users in the base image.
+RUN groupadd -r -g 1005 appgroup && \
+    useradd -r -u 1005 -g 1005 -d /app -s /sbin/nologin -c "Application User" appuser
+
+# Set the working directory in the container
 WORKDIR /app
+
+# Ensure ownership is set to the new non-root user
+# COPY always executes as root
+COPY --chown=appuser:appgroup app.py .
+
+# Switch to the non-root user for runtime
+USER appuser
+
+# Expose the port Flask will listen on
 EXPOSE 8080
-CMD ["python3", "app.py"]
+ENV RHHI_VARIANT=ubi
+
+# Appropriately set the stop signal for the python interpreter executed as PID 1
+STOPSIGNAL SIGINT
+ENTRYPOINT ["python3", "./app.py"]
+
