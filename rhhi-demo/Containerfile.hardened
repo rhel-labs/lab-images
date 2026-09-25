@@ -1,8 +1,30 @@
-FROM registry.access.redhat.com/hi/python:3.12
+# Stage 1: Builder base image # <.>
+FROM registry.access.redhat.com/hi/python:3.14-builder AS deps
 USER root
-RUN ["pip", "install", "flask"]
-USER 65532
-COPY app.py /app/app.py
+
+# Install the Python depdencies, no shell errors 
+RUN mkdir -p /install && pip install flask --prefix=/install
+
+#Stage 2: Default runtime image # <.>
+FROM registry.access.redhat.com/hi/python:3.14
+
+# Copy just the Python dependencies from the first stage # <.>
+COPY --from=deps /install /usr/local
+
+# Set the working directory in the container
 WORKDIR /app
+
+# Copy the application files to the target directory
+# COPY always executes as root
+COPY --chown=65532 app.py . 
+
+# Switch to the default non-root user for runtime
+USER ${CONTAINER_DEFAULT_USER} 
+
+# Expose the port Flask will listen on
 EXPOSE 8080
+ENV RHHI_VARIANT=hardened
+
+# Appropriately set the stop signal for the python interpreter executed as PID 1
+STOPSIGNAL SIGINT
 CMD ["python3", "app.py"]
