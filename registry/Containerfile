@@ -1,4 +1,4 @@
-ARG DISTRIBUTION_VERSION=v3.1.1
+ARG DISTRIBUTION_VERSION=v3.1.2
 
 FROM registry.access.redhat.com/hi/core-runtime:2.43-builder AS build
 
