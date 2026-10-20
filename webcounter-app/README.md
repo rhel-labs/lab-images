@@ -15,7 +15,7 @@ Run the store and the frontend on a user-defined network:
 
 ```bash
 podman network create app-net
-podman run -d --rm --name store --network app-net registry.access.redhat.com/hi/valkey:latest
+podman run -d --rm --name store --network app-net registry.access.redhat.com/hi/valkey:latest --protected-mode no
 podman run -d --rm --name web -p 8000:8000 --network app-net -e STORE_HOST=store webcounter-app
 ```
 
