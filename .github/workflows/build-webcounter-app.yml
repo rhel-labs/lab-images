@@ -1,0 +1,78 @@
+name: Build webcounter app image
+
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - webcounter-app/**
+  pull_request:
+    branches: [main]
+    paths:
+      - webcounter-app/**
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/install-container-tools
+
+      - name: Build application image
+        run: podman build -t ghcr.io/rhel-labs/webcounter-app:latest -f webcounter-app/Containerfile webcounter-app/
+
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          podman network create smoke-net
+          podman run -d --name store --network smoke-net registry.access.redhat.com/hi/valkey:latest
+          podman run -d --name webcounter --pull=never --network smoke-net -p 8000:8000 -e STORE_HOST=store ghcr.io/rhel-labs/webcounter-app:latest
+          sleep 2
+          curl -sf --ipv4 --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8000 | grep -q 'Page views: 1'
+          curl -sf --ipv4 http://localhost:8000 | grep -q 'Page views: 2'
+          podman stop webcounter store
+          podman network rm smoke-net
+
+      - name: Graceful degradation test
+        run: |
+          set -euo pipefail
+          podman run -d --name webcounter-default --pull=never -p 8001:8000 ghcr.io/rhel-labs/webcounter-app:latest
+          sleep 2
+          code=$(curl -s --ipv4 -o /dev/null -w '%{http_code}' http://localhost:8001)
+          [ "$code" = "200" ]
+          curl -s --ipv4 http://localhost:8001 | grep -q 'store unreachable'
+          podman stop webcounter-default
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: |
+          podman logs webcounter 2>&1 || true
+          podman logs webcounter-default 2>&1 || true
+
+      - name: Log in to ghcr.io
+        if: github.event_name != 'pull_request'
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image
+        if: github.event_name != 'pull_request'
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            podman push ghcr.io/rhel-labs/webcounter-app:latest
+          else
+            TAG=$(echo "${{ github.ref_name }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
+            podman tag ghcr.io/rhel-labs/webcounter-app:latest ghcr.io/rhel-labs/webcounter-app:${TAG}
+            podman push ghcr.io/rhel-labs/webcounter-app:${TAG}
+          fi

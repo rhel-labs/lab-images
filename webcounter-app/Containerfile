@@ -1,0 +1,28 @@
+# Build stage: the builder image has the tools to create the venv
+FROM registry.access.redhat.com/hi/python:3.11-builder AS builder
+
+WORKDIR /app
+
+# Create the application venv and install the requirements
+RUN python3 -m venv /app/venv
+COPY --chown=65532 app/requirements.txt .
+RUN /app/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Copy the application code
+COPY --chown=65532 app/ .
+
+# Final stage: the default image has no shell — the app ships without one
+FROM registry.access.redhat.com/hi/python:3.11
+
+WORKDIR /app
+
+COPY --from=builder --chown=65532 /app /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+ENV PATH="/app/venv/bin:$PATH"
+
+EXPOSE 8000
+
+# Run the application with Gunicorn
+CMD ["gunicorn", "--workers", "2", "--bind", "0.0.0.0:8000", "app:app"]
