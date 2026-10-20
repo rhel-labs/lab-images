@@ -34,8 +34,8 @@ jobs:
         run: |
           set -euo pipefail
           podman network create smoke-net
-          podman run -d --name store --network smoke-net registry.access.redhat.com/hi/valkey:latest --protected-mode no
-          podman run -d --name webcounter --pull=never --network smoke-net -p 8000:8000 -e STORE_HOST=store ghcr.io/rhel-labs/webcounter-app:latest
+          podman run -d --rm --name store --network smoke-net registry.access.redhat.com/hi/valkey:latest --protected-mode no
+          podman run -d --rm --name webcounter --pull=never --network smoke-net -p 8000:8000 -e STORE_HOST=store ghcr.io/rhel-labs/webcounter-app:latest
           sleep 2
           curl -sf --ipv4 --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8000 | grep -q 'Page views: 1'
           curl -sf --ipv4 http://localhost:8000 | grep -q 'Page views: 2'
@@ -45,7 +45,7 @@ jobs:
       - name: Graceful degradation test
         run: |
           set -euo pipefail
-          podman run -d --name webcounter-default --pull=never -p 8001:8000 ghcr.io/rhel-labs/webcounter-app:latest
+          podman run -d --rm --name webcounter-default --pull=never -p 8001:8000 ghcr.io/rhel-labs/webcounter-app:latest
           sleep 2
           code=$(curl -s --ipv4 -o /dev/null -w '%{http_code}' http://localhost:8001)
           [ "$code" = "200" ]
